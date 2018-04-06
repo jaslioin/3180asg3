@@ -25,7 +25,7 @@ use Player;
 use Deck;
 sub new {
 	my $class = shift @_;
-	my $deck = Deck->new();
+	my $deck = MannerDeckStudent->new();
 	my @players = {};
 	my @cards;
 	
@@ -39,8 +39,7 @@ sub new {
 	return $object;
 }
 
-sub set_players {
-	print "set_players!\n";
+sub set_players {	
 	my $self = shift @_;
 	#my $names = $_[0];
 	my $names = shift @_;
@@ -48,19 +47,25 @@ sub set_players {
 	for my $i (@$names){
 		#print "$i\n";	
 		my $playerobj = Player->new($i);
-		print $playerobj->{name};
+		
 		push $self->{players},$playerobj;
 		#print $self->{players}[$count + 1]->{name};
-		print "\n";
+		#print "\n";
 		#print "$count ++\n";
 		$count +=1;	
 	}
 	#---------delete first meaningless element--------	
 	shift $self->{players};
+
 	#print @{$self->{players}};	
 	#---------check if num of players is available	
 	if (52 % $count == 0){
-		
+		print "There $count players in the game:\n";
+		for my $i (@$names){
+			print $i," ";
+		}
+		print "\n";	
+		print "\n";	
 		return 1;	
 	}else{
 		print "52 not 1divisible by $count\n";
@@ -73,20 +78,29 @@ sub getReturn {
 }
 
 sub showCards {
-	print "showCards!\n";	
+	#print "showCards!\n";	
 	my $self = shift;
-	#my $cards = $self->{cards};
-	print @{$self->{cards}},"\n";
+	my $cards = $self->{cards};
+	
+	#print @{$self->{cards}},"\n";
+	print join " ", @{$self->{"cards"}};
+=begin	
+	for my $i (@$cards){
+		print $i;
+	}
+=cut
+
+	print "\n";
 }
 
 sub start_game {
-	print "start_game!\n";		
+	print "Game begin!!!\n";		
 	my $self = shift;
 	#$self->{deck}->showCards();
 	#-------------shuffle the deck----------
 	$self->{deck}->shuffle();
-	print "shuffled !\n";
-	$self->{deck}->showCards();
+	#print "shuffled !\n";
+	#$self->{deck}->showCards();
 	#-------------divide the cards to players	
 	#print "num of players: ",scalar(@{$self->{players}}),"\n";
 	my @num = $self->{deck}->AveDealCards(scalar(@{$self->{players}}));	
@@ -106,52 +120,72 @@ sub start_game {
 	}
 	#-----------while game not end
 	my $turn=0;
-	my $testcount=0;
+	#my $testcount=0;
+	my $gameturn=1;
+	my $winner;
 	while(1){
-		if ($testcount == 4){
+		print "\n";
+=begin		
+		if ($testcount == 100){
 			last;
-		}				
-		print "#####turn ",$turn,"\n";		
+		}	
+=cut
+		#print "#####turn ",$turn,"\n";		
 		#---------check if the player already losed
 		if (scalar(@{$self->{players}[$turn]->{cards}}) == 0){
 			$turn++;
+			#print "player ",$self->{players}[$turn]->{name},"has no cards, out!\n";
 			next;
 		}
-		#---------display the stack now
+			
+		print "Player ",$self->{players}[$turn]->{name}," has ",scalar(@{$self->{players}[$turn]->{cards}}) ," cards before deal.\n";
+		#$self->{players}[$turn]->showCards();			
+		print "=====Before player's deal=======\n";
 		$self->showCards();
+		print "================================\n";
+		
 		#---------player deal card
 		my $dealtCard = $self->{players}[$turn]->dealCards();
 		my $token =0;
 		my $index;
 		my @returncards;
 		my $numtopop=1;#include the dealtcard
+		
 		if ($dealtCard){			
-			print "player ",$self->{players}[$turn]->{name}," dealt", $dealtCard,"\n";			
-			push $self->{cards}, $dealtCard;			
-			$self->showCards();
-			#-----find identical card 
-			for(my $i =scalar(@{$self->{cards}})-2;$i>=0;$i--){
-				$numtopop++;
-				if ($self->{cards}[$i] eq $dealtCard){
-					$token=1;
-					last;
+			print $self->{players}[$turn]->{name}," ==> card ", $dealtCard,"\n";			
+			push $self->{cards}, $dealtCard;		
+			
+			#-----find identical card
+				#-----if not the stack is not empty before deal
+			if (scalar(@{$self->{cards}}) > 1){
+				for(my $i =scalar(@{$self->{cards}})-2;$i>=0;$i--){
+					$numtopop++;									
+					if ($self->{cards}[$i] eq $dealtCard){
+						$token=1;
+						last;
+					}
+					if ($dealtCard eq "J" && scalar(@{$self->{cards}}) !=0){															
+						$token =1;
+						$numtopop = scalar(@{$self->{cards}});
+						last;
+					}								
 				}
-				if ($dealtCard eq "J" && scalar(@{$self->{cards}}) !=0){															
-					$token =1;
-					$numtopop = scalar(@{$self->{cards}});
-					last;
-				}								
-			}
+			}		
 			#-----pop the card stack and push into returncards
 			if ($token == 1){
-				print "num of cards to pop ",$numtopop,"\n";
+				#print "num of cards to pop ",$numtopop,"\n";
 				for(my $i =0;$i<$numtopop;$i++){
-					push @returncards ,pop $self->{cards};				
+					push @returncards ,pop $self->{cards};								
 				}
-
+				#print "returncards: ",@returncards;
+				$self->{players}[$turn]->getCards(@returncards);
 			}
+			print "=====After player's deal=======\n";
+			$self->showCards();
+			print "================================\n";
 			
 =begin			
+239547396JJK8274106K8Q105QAA
 			for(my $i =0;$i<scalar(@{$self->{cards}});$i++){
 				if ($token==1){
 					push @returncards, $self->{cards}[$i];
@@ -169,8 +203,9 @@ sub start_game {
 				}
 			}
 =cut			
-			$self->{players}[$turn]->getCards(@returncards);
-			print "player ",$self->{players}[$turn]->{name}," cards: ",$self->{players}[$turn]->showCards() ,"\n";			
+			print "Player ",$self->{players}[$turn]->{name}," has ",scalar(@{$self->{players}[$turn]->{cards}}) ," cards after deal.\n";
+			
+			#$self->{players}[$turn]->showCards();			
 			#-----clean card stack
 =begin			
 			for(my $i =scalar(@{$self->{cards}})-1;$i>=0;$i--){
@@ -186,28 +221,36 @@ sub start_game {
 
 		#---------check win
 		my $alive=0;
+		$countie = 0;
 		for my $i (@{$self->{players}}){
-			if (scalar(@{$self->{players}[$turn]->{cards}}) != 0){
+			#print " check win ",scalar(@{$self->{players}[$countie]->{cards}}),"\n";
+			if (scalar(@{$self->{players}[$countie]->{cards}}) > 0){
 				$alive++;
+				$winner = $countie;
+			}else{
+				print "Player ",$self->{players}[$countie]->{name}," has no cards, out!\n"
 			}
+			$countie++;
 		}
-		if ($alive == 1 ){
-			print "we have winner yay\n";
+		if ($alive == 1 ){		
 			last;
 		}
 		#---------next player's turn
 		$turn++;
-		$testcount++;
+		#$testcount++;
 		#---------reset turn when all players had their move
-		print "turnmax: ",scalar(@{$self->{players}})-1,"\n";
+		#print "turnmax: ",scalar(@{$self->{players}})-1,"\n";
 		if ($turn > scalar(@{$self->{players}})-1){
-			print "turn reset\n";
+		#	print "turn reset\n";
+			$gameturn ++;
 			$turn = 0;
 		}
 	}
 
+	print "\n";
+	print "Winner is ",$self->{players}[$winner]->{name}," in game ",$gameturn,"\n";
+	print "\n";
 
-	print "GAME END!\n";
 }
 
 return 1;

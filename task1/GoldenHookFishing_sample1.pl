@@ -12,8 +12,8 @@ if ($game->set_players(['lin', 'liz'])) {
 
 
 #----------remaining cards after game end
-	$game->{players}[0]->showCards();	
-	$game->{players}[1]->showCards();		
+	#$game->{players}[0]->showCards();	
+	#$game->{players}[1]->showCards();		
 }else{
 	print "No Game";
 }

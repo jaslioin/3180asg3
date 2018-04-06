@@ -33,13 +33,14 @@ sub new {
 sub showCards{
 	my $self = shift;
 	print @{$self->{cards}};
+
 	print "\n";
 }
 sub getCards {
 	my $self = shift;	
 	#print "num of cards ",scalar(@_),"\n";
 	for( my $i =0;$i<scalar(@_);$i++){
-		#print $i,"\n";
+		#print "got ",$i,"\n";
 		push $self->{cards}, $_[$i];			
 	}
 	#print "\n";
