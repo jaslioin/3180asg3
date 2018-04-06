@@ -9,11 +9,6 @@ sub new {
 	my $object = bless {"cards"=>\@cards}, $class;
 	return $object;
 }
-sub showCards{
-	my $self = shift;
-	print @{$self->{cards}};
-	print "\n";
-}
 sub shuffle {
 	my $self = shift @_;
 	my $card = $self->{"cards"};

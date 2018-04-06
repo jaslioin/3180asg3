@@ -68,13 +68,30 @@ sub set_players {
 		print "\n";	
 		return 1;	
 	}else{
-		print "52 not 1divisible by $count\n";
+		print "Error: cards' number 52 can not be divided by players number $count!\n";
 		return 0;
 	}
 }
 
 sub getReturn {
-	print "getReturn!\n";
+	my $self = shift;
+
+#-----find identical card
+	#-----if not the stack is not empty before deal
+	if (scalar(@{$self->{cards}}) > 1){
+		for(my $i =scalar(@{$self->{cards}})-2;$i>=0;$i--){
+			$_[0]++;									
+			if ($self->{cards}[$i] eq $_[2]){
+				$_[1]=1;
+				last;
+			}
+			if ($_[2] eq "J" && scalar(@{$self->{cards}}) !=0){															
+				$_[1] =1;
+				$_[0] = scalar(@{$self->{cards}});
+				last;
+			}								
+		}
+	}
 }
 
 sub showCards {
@@ -124,7 +141,7 @@ sub start_game {
 	my $gameturn=1;
 	my $winner;
 	while(1){
-		print "\n";
+		
 =begin		
 		if ($testcount == 100){
 			last;
@@ -132,11 +149,18 @@ sub start_game {
 =cut
 		#print "#####turn ",$turn,"\n";		
 		#---------check if the player already losed
+		#print $self->{players}[$turn]->{name}," has ",scalar(@{$self->{players}[$turn]->{cards}})," cards\n";
 		if (scalar(@{$self->{players}[$turn]->{cards}}) == 0){
 			$turn++;
 			#print "player ",$self->{players}[$turn]->{name},"has no cards, out!\n";
+			if ($turn > scalar(@{$self->{players}})-1){
+			#	print "turn reset\n";
+				$gameturn ++;
+				$turn = 0;
+			}
 			next;
 		}
+		print "\n";
 			
 		print "Player ",$self->{players}[$turn]->{name}," has ",scalar(@{$self->{players}[$turn]->{cards}}) ," cards before deal.\n";
 		#$self->{players}[$turn]->showCards();			
@@ -155,22 +179,9 @@ sub start_game {
 			print $self->{players}[$turn]->{name}," ==> card ", $dealtCard,"\n";			
 			push $self->{cards}, $dealtCard;		
 			
-			#-----find identical card
-				#-----if not the stack is not empty before deal
-			if (scalar(@{$self->{cards}}) > 1){
-				for(my $i =scalar(@{$self->{cards}})-2;$i>=0;$i--){
-					$numtopop++;									
-					if ($self->{cards}[$i] eq $dealtCard){
-						$token=1;
-						last;
-					}
-					if ($dealtCard eq "J" && scalar(@{$self->{cards}}) !=0){															
-						$token =1;
-						$numtopop = scalar(@{$self->{cards}});
-						last;
-					}								
-				}
-			}		
+			#cal how many to return to player
+			$self->getReturn($numtopop,$token,$dealtCard);
+			
 			#-----pop the card stack and push into returncards
 			if ($token == 1){
 				#print "num of cards to pop ",$numtopop,"\n";
@@ -215,8 +226,6 @@ sub start_game {
 				}
 			}
 =cut
-		}else{
-			print "this player already losed!\n";
 		}
 
 		#---------check win
@@ -228,7 +237,12 @@ sub start_game {
 				$alive++;
 				$winner = $countie;
 			}else{
-				print "Player ",$self->{players}[$countie]->{name}," has no cards, out!\n"
+				if($self->{players}[$countie]->{dead} == 0)
+				{
+					print "Player ",$self->{players}[$countie]->{name}," has no cards, out!\n";
+					$self->{players}[$countie]->{dead} = 1;		
+				}
+				
 			}
 			$countie++;
 		}

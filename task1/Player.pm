@@ -24,9 +24,11 @@ sub new {
 	my $name = shift @_;
 	#card deck??
 	my @cards = {};
+	my $dead = 0;
 	my $object = bless {
 		"name"=>$name,
-		"cards"=>\@cards
+		"cards"=>\@cards,
+		"dead"=>$dead,
 		},$class;
 	return $object;
 }
