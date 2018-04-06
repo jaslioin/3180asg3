@@ -76,7 +76,7 @@ sub showCards {
 	print "showCards!\n";	
 	my $self = shift;
 	#my $cards = $self->{cards};
-	print @{$self->{cards}};
+	print @{$self->{cards}},"\n";
 }
 
 sub start_game {
@@ -106,11 +106,12 @@ sub start_game {
 	}
 	#-----------while game not end
 	my $turn=0;
+	my $testcount=0;
 	while(1){
-		#---------reset turn when all players had their move
-		if ($turn == scalar(@{$self->{players}})-1){
-			$turn = 0;
-		}		
+		if ($testcount == 4){
+			last;
+		}				
+		print "#####turn ",$turn,"\n";		
 		#---------check if the player already losed
 		if (scalar(@{$self->{players}[$turn]->{cards}}) == 0){
 			$turn++;
@@ -123,10 +124,34 @@ sub start_game {
 		my $token =0;
 		my $index;
 		my @returncards;
-		if ($dealtCard){
-			print "player",$self->{players}[$turn]->{name},"dealt", $dealtCard;
+		my $numtopop=1;#include the dealtcard
+		if ($dealtCard){			
+			print "player ",$self->{players}[$turn]->{name}," dealt", $dealtCard,"\n";			
 			push $self->{cards}, $dealtCard;			
-			#-----get return cards if found identical
+			$self->showCards();
+			#-----find identical card 
+			for(my $i =scalar(@{$self->{cards}})-2;$i>=0;$i--){
+				$numtopop++;
+				if ($self->{cards}[$i] eq $dealtCard){
+					$token=1;
+					last;
+				}
+				if ($dealtCard eq "J" && scalar(@{$self->{cards}}) !=0){															
+					$token =1;
+					$numtopop = scalar(@{$self->{cards}});
+					last;
+				}								
+			}
+			#-----pop the card stack and push into returncards
+			if ($token == 1){
+				print "num of cards to pop ",$numtopop,"\n";
+				for(my $i =0;$i<$numtopop;$i++){
+					push @returncards ,pop $self->{cards};				
+				}
+
+			}
+			
+=begin			
 			for(my $i =0;$i<scalar(@{$self->{cards}});$i++){
 				if ($token==1){
 					push @returncards, $self->{cards}[$i];
@@ -143,15 +168,18 @@ sub start_game {
 					}
 				}
 			}
+=cut			
 			$self->{players}[$turn]->getCards(@returncards);
+			print "player ",$self->{players}[$turn]->{name}," cards: ",$self->{players}[$turn]->showCards() ,"\n";			
 			#-----clean card stack
+=begin			
 			for(my $i =scalar(@{$self->{cards}})-1;$i>=0;$i--){
 				pop $self->{cards};
 				if ($i == $index){
 					last;
 				}
 			}
-
+=cut
 		}else{
 			print "this player already losed!\n";
 		}
@@ -169,10 +197,17 @@ sub start_game {
 		}
 		#---------next player's turn
 		$turn++;
+		$testcount++;
+		#---------reset turn when all players had their move
+		print "turnmax: ",scalar(@{$self->{players}})-1,"\n";
+		if ($turn > scalar(@{$self->{players}})-1){
+			print "turn reset\n";
+			$turn = 0;
+		}
 	}
 
 
-	
+	print "GAME END!\n";
 }
 
 return 1;
